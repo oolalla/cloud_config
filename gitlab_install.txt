@@ -1,0 +1,101 @@
+﻿====== git test 추가 1 =============
+
+https://blog.naver.com/varkiry05/221374755341
+
+openssh 와 ssh 접근, 그리고 방화벽 설정이 되어있다면 오픈합니다.
+아래의 스크립트를 실행하던 도중 "FirewallD is not running" 와 같은 문구가 보인다면 방화벽이 활성화되어있지 않다는 의미이므로 설정이 필요하다면 다른 사이트를 참조하는게 좋겠습니다.
+
+# FilewallD 이란?
+RHEL 7 부터는 방화벽을 관리하는 데몬이 firewalld 로 변경되었고 방화벽 설정은 복잡한 iptables 명령어대신 firewall-cmd (콘솔), firewall-config(X-Windows) 명령어를 사용하는 것을 권장합니다.
+- 참조사이트: https://www.lesstif.com/pages/viewpage.action?pageId=22053128
+sudo yum install -y curl policycoreutils-python openssh-server
+sudo systemctl enable sshd
+sudo systemctl start sshd
+sudo firewall-cmd --permanent --add-service=http
+sudo systemctl reload firewalld
+GitLab Package repository를 추가합니다.
+curl https://packages.gitlab.com/install/repositories/gitlab/gitlab-ee/script.rpm.sh | sudo bash
+다음 명령어를 이용해 설치합니다.
+설치할때 EXTERNAL_URL 는 브라우저로 접속할 정보를 입력하는데 여기에 포트도 추가하여 입력해도 됩니다.
+대신 포트를 추가하는 경우 firewalld 나 iptables를 사용할 경우 에서 추가 설정을 해주어야 합니다.
+
+제가 사용하는 서버에는 'http://[server id]:[port]' 으로 등록했습니다.
+sudo EXTERNAL_URL="http://[server id]:[port]" yum install -y gitlab-ee
+
+# 만약 포트번호 추가했을 경우 firewalld 사용시 아래와 같은 방법으로 해제
+sudo firewall-cmd --permanent --zone=public --add-port=[포트번호]/tcp
+sudo systemctl reload firewalld
+설치가 완료되면 다음과 같이 로그가 찍힙니다.
+Running handlers:
+Running handlers complete
+Chef Client finished, 199/619 resources updated in 03 minutes 36 seconds
+gitlab Reconfigured!
+
+       *.                  *.
+      ***                 ***
+     *****               *****
+    .******             *******
+    ********            ********
+   ,,,,,,,,,***********,,,,,,,,,
+  ,,,,,,,,,,,*********,,,,,,,,,,,
+  .,,,,,,,,,,,*******,,,,,,,,,,,,
+      ,,,,,,,,,*****,,,,,,,,,.
+         ,,,,,,,****,,,,,,
+            .,,,***,,,,
+                ,*,.
+  
+
+
+     _______ __  __          __
+    / ____(_) /_/ /   ____ _/ /_
+   / / __/ / __/ /   / __ `/ __ \
+  / /_/ / / /_/ /___/ /_/ / /_/ /
+  \____/_/\__/_____/\__,_/_.___/
+  
+
+Thank you for installing GitLab!
+GitLab should be available at http://[server id]:[port]
+
+For a comprehensive list of configuration options please see the Omnibus GitLab readme
+https://gitlab.com/gitlab-org/omnibus-gitlab/blob/master/README.md
+
+  Verifying  : gitlab-ee-11.3.4-ee.0.el7.x86_64                                                     1/1 
+
+Installed:
+  gitlab-ee.x86_64 0:11.3.4-ee.0.el7                                                                    
+
+Complete!
+이제부터 EXTERNAL_URL에 입력한 URL 을 브라우저로 접근이 가능합니다.
+
+처음 설치하고 나서는 root 계정 비밀번호를 설정해야 합니다.
+설정한 정보로 로그인이 가능합니다.
+
+Root 비밀번호 설정 화면
+
+로그인 화면
+
+로그인 후 첫 화면
+# 접속 URL을 수정하고 싶을 경우
+# gitlab.rb 파일안에 URL을 수정합니다.
+vi /etc/gitlab/gitlab.rb
+
+
+### 아래의 내용을 찾아 수정합니다.
+external_url 'http://[변경할 server id]:[변경할 port]'
+
+
+# 적용
+sudo gitlab-ctl reconfigure
+
+
+# 재시작
+sudo gitlab-ctl restart
+
+# 설치 참조 사이트:
+- 다른 OS에서 설치하는 방법도 있으니 확인하면 좋을듯 합니다.
+https://about.gitlab.com/installation/#centos-7
+
+# 설정 참조 사이트:
+https://docs.gitlab.com/omnibus/settings/configuration.html#configuring-the-external-url-for-gitlab
+[출처] [linux-centos7] gitlab 설치하기|작성자 demonic
+
